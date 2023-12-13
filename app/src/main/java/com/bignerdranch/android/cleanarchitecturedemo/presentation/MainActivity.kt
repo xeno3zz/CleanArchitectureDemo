@@ -5,18 +5,20 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.bignerdranch.android.cleanarchitecturedemo.R
-import com.bignerdranch.android.cleanarchitecturedemo.data.interfaces.UserRepositoryImpl
-import com.bignerdranch.android.cleanarchitecturedemo.domain.models.SaveUserNameParam
-import com.bignerdranch.android.cleanarchitecturedemo.domain.models.UserName
-import com.bignerdranch.android.cleanarchitecturedemo.domain.usecase.GetUserNameUseCase
-import com.bignerdranch.android.cleanarchitecturedemo.domain.usecase.SaveUserNameUseCase
+import data.respository.UserRepositoryImpl
+import data.storage.sharedPrefs.SharedPrefUserStorage
+import domain.models.SaveUserNameParam
+import domain.models.UserName
+import domain.usecase.GetUserNameUseCase
+import domain.usecase.SaveUserNameUseCase
 
 class MainActivity : AppCompatActivity() {
 
-    private val userRepository by lazy(LazyThreadSafetyMode.NONE) { UserRepositoryImpl(context = applicationContext) }
-    private val saveUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { SaveUserNameUseCase(userRepository = userRepository) }
-    private val getUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { GetUserNameUseCase(userRepository = userRepository) }
+    private lateinit var vm: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -24,15 +26,16 @@ class MainActivity : AppCompatActivity() {
         val dataEditView = findViewById<EditText>(R.id.dataET)
         val getBtn = findViewById<Button>(R.id.getBtn)
         val saveBtn = findViewById<Button>(R.id.saveBtn)
+        vm = ViewModelProvider(this, MainViewModelFactory(this)).get(MainViewModel::class.java)
+        vm.resultLive.observe(this, Observer {
+            dataTextView.text = it
+        })
         getBtn.setOnClickListener {
-            val userName: UserName = getUserNameUseCase.execute()
-            dataTextView.text = "${userName.firstName} ${userName.lastName}"
+             vm.load()
         }
         saveBtn.setOnClickListener {
             val text = dataEditView.text.toString()
-            val params = SaveUserNameParam(name = text)
-            val result: Boolean = saveUserNameUseCase.execute(param = params)
-            dataTextView.text = "Save result = $result"
+            vm.save(text)
         }
     }
 }
