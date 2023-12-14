@@ -15,10 +15,12 @@ import domain.models.SaveUserNameParam
 import domain.models.UserName
 import domain.usecase.GetUserNameUseCase
 import domain.usecase.SaveUserNameUseCase
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var vm: MainViewModel
+   // private lateinit var vm: MainViewModel //- без DI
+    private val vm: MainViewModel by viewModel<MainViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         val dataEditView = findViewById<EditText>(R.id.dataET)
         val getBtn = findViewById<Button>(R.id.getBtn)
         val saveBtn = findViewById<Button>(R.id.saveBtn)
-        vm = ViewModelProvider(this, MainViewModelFactory(this)).get(MainViewModel::class.java)
+       /* vm = ViewModelProvider(this, MainViewModelFactory(this)).get(MainViewModel::class.java)*/ //- без DI
         vm.resultLive.observe(this, Observer {
             dataTextView.text = it
         })
